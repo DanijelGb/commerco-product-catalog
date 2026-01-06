@@ -17,11 +17,11 @@ const user = new User("NO", cart)
 
 const feeCalculator = new FeeCalculator();
 
-const checkout = new Checkout();
+const checkout = new Checkout(feeCalculator);
 
 async function main(){
 
-  const result = await checkout.viewOrder(user, feeCalculator)
+  const result = await checkout.viewOrder(user)
   console.log(result);
 }
 

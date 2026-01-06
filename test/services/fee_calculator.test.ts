@@ -1,0 +1,31 @@
+import { Cart } from "../../src/domains/cart";
+import { Product } from "../../src/domains/product";
+import { User } from "../../src/domains/user";
+import { Checkout } from "../../src/services/checkout";
+import { FeeCalculator } from "../../src/services/fee_calculator";
+
+describe("Test fee calculator functionality", () => {
+    it("assigns fee to 199 when country other than 'SE', 'NO', 'US'", async () => {
+        const prod = new Product(50, 100, "Hammer");
+
+        const cart = new Cart();
+        cart.addProduct(prod);
+
+        const user = new User("FI", cart)
+
+        const feeCalculator = new FeeCalculator();
+        const checkout = new Checkout(feeCalculator)
+
+        const result = await checkout.viewOrder(user);
+
+        expect(result.ok).toBe(true);
+
+        if(result.ok === true){
+
+            expect(result.value.fee).toBe(199);
+        } else {
+            throw new Error("Expected result.ok to be true but was false")
+        }
+        
+    });
+});

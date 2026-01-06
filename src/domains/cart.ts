@@ -1,6 +1,7 @@
+import { ICart } from "../interfaces/icart";
 import { Product } from "./product";
 
-export class Cart{
+export class Cart implements ICart{
 
     private products: Product[] = [];
 
@@ -8,8 +9,8 @@ export class Cart{
         this.products.push(product);
     }
 
-    getProducts() {
-        this.products;
+    getProducts(): Product[]{
+        return this.products;
     }
 
     getTotalWeight(): number {

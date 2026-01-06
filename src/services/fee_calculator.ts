@@ -1,35 +1,50 @@
 export class FeeCalculator{
 
-
-    async calculate(amount: number, weight: number, country: string): Promise<number>{
-        let fee = 0;
+    calculateFee(amount: number, weight: number, country: string): number{
 
         switch (country) {
             case "SE":
-                if(weight > 20){
-                    fee += 200;
-                }
-                if(amount <= 500){
-                    fee += 200;
-                }
-                return fee;
+                return this.calculateSE(amount, weight)
             case "NO":
-                fee = 149
-                if(amount > 1000){
-                    fee = 99;
-                }
-                if(weight > 30){
-                    fee = 299;
-                } else if (weight > 50){
-                    fee += 500;
-                }
-                return fee;
+                return this.calculateNO(amount, weight)
             case "US":
-                fee = 499;    
-                return fee;
+                return 499;
             default:
                 return 199;
         }
+    }
 
+    private calculateSE(amount: number, weight: number): number {
+        let fee = 0;
+
+        const basicPackage = 20;
+        const freeShippingThreshold = 500;
+
+        const lowOrderFee = 59;
+        const heavyPackageFee = 200;
+
+        if(amount <= freeShippingThreshold) {fee += lowOrderFee;}
+        if(weight > basicPackage) {fee += heavyPackageFee;}
+
+        return fee;
+    }
+
+    private calculateNO(amount: number, weight: number): number {
+        const reducedShippingThreshold = 1000
+        const lowOrderFee = 149;
+        const highOrderFee = 99;
+
+        let fee = amount > reducedShippingThreshold ? lowOrderFee : highOrderFee 
+
+        const basicPackage = 30;
+        const heavyPackage = 50
+
+        const extraHeavyPackageFee = 500
+        const heavyPackageFlatFee = 299;
+
+        if (weight > heavyPackage) {fee += extraHeavyPackageFee}
+        else if(weight > basicPackage) {fee = heavyPackageFlatFee} 
+
+        return fee;
     }
 }

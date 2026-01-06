@@ -1,9 +1,9 @@
-import { Cart } from "./cart";
+import { ICart } from "../interfaces/icart"
 
 export class User{
-    constructor(private country: string, private cart: Cart){}
+    constructor(private country: string, private cart: ICart){}
 
-    getCart(): Cart{
+    getCart(): ICart{
         return this.cart
     }
 
