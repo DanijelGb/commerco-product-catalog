@@ -1,31 +1,63 @@
-import { Cart } from "../../src/domains/cart";
-import { Product } from "../../src/domains/product";
-import { User } from "../../src/domains/user";
-import { Checkout } from "../../src/services/checkout";
 import { FeeCalculator } from "../../src/services/fee_calculator";
 
-describe("Test fee calculator functionality", () => {
-    it("assigns fee to 199 when country other than 'SE', 'NO', 'US'", async () => {
-        const prod = new Product(50, 100, "Hammer");
+describe("Test fee_calculator to work as intended", () => {
+    it("expects free shipping when TotalAmount > 500 and TotalWeight < 20 when country is 'SE'", async () => {
+        const feeCalculator = new FeeCalculator()
 
-        const cart = new Cart();
-        cart.addProduct(prod);
+        const totalAmount = 501;
+        const TotalWeight = 19;
 
-        const user = new User("FI", cart)
+        const shippingFee = feeCalculator.calculateFee(totalAmount, TotalWeight, "SE");
 
-        const feeCalculator = new FeeCalculator();
-        const checkout = new Checkout(feeCalculator)
+        expect(shippingFee).toBe(0);
 
-        const result = await checkout.viewOrder(user);
+    })
 
-        expect(result.ok).toBe(true);
+    it("should be 299 in all cases if weight between 30 and 50 (non including) when country is 'NO'", async () => {
+        const feeCalculator = new FeeCalculator()
 
-        if(result.ok === true){
+        let totalAmount = 1001;
+        let totalWeight = 49;
 
-            expect(result.value.fee).toBe(199);
-        } else {
-            throw new Error("Expected result.ok to be true but was false")
-        }
+        let shippingFee = feeCalculator.calculateFee(totalAmount, totalWeight, "NO");
+
+        expect(shippingFee).toBe(299);
+
+        totalAmount = 103;
+        totalWeight = 31;
+
+        shippingFee = feeCalculator.calculateFee(totalAmount, totalWeight, "NO");
         
-    });
-});
+        expect(shippingFee).toBe(299);
+    })
+
+    it("should be 649 when TotalAmount > 1000 and TotalWeight > 50 when country is 'NO'", async () => {
+        const feeCalculator = new FeeCalculator()
+
+        const totalAmount = 1001;
+        const totalWeight = 51;
+
+        const shippingFee = feeCalculator.calculateFee(totalAmount, totalWeight, "NO");
+
+        expect(shippingFee).toBe(649);
+    })
+
+    it("should always be 499 when country is 'US'", async () => {
+        const feeCalculator = new FeeCalculator()
+
+        let totalAmount = 1001;
+        let TotalWeight = 51;
+
+        let shippingFee = feeCalculator.calculateFee(totalAmount, TotalWeight, "US");
+
+        expect(shippingFee).toBe(499);
+
+        totalAmount = 50
+        TotalWeight = 3
+
+        shippingFee = feeCalculator.calculateFee(totalAmount, TotalWeight, "US")
+
+        expect(shippingFee).toBe(499);
+        
+    })
+})

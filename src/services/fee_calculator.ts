@@ -1,6 +1,8 @@
+import { Country } from "../schemas/country";
+
 export class FeeCalculator{
 
-    calculateFee(amount: number, weight: number, country: string): number{
+    calculateFee(amount: number, weight: number, country: Country): number{
 
         switch (country) {
             case "SE":
