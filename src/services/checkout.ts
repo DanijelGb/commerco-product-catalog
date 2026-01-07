@@ -10,13 +10,14 @@ export class Checkout{
     async viewOrder(user: User): Promise<Result<Order>>{
 
         const cart = user.getCart()
-        const totalWeight = cart.getTotalWeight();
-        const totalPrice = cart.getTotalPrice();
-        const country = user.getCountry();
 
-        const fee = await this.feeCalculator.calculateFee(totalPrice, totalWeight, country);
+        const fee = await this.feeCalculator.calculateFee(
+            cart.getTotalPrice(),
+            cart.getTotalWeight(),
+            user.getCountry()
+        );
 
-        const totalWithFee = totalPrice + fee;
+        const totalWithFee = cart.getTotalPrice() + fee;
 
         return {
             ok: true,

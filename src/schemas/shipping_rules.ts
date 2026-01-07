@@ -1,11 +1,36 @@
-export type ShippingRules = {
-    country: string,
-    startingFee: number | undefined,
-    shippingAmountThreshold: number | undefined,
-    lightPackage: number | undefined,
-    heavyPackage: number | undefined,
-    lowOrderFee: number | undefined,
-    highOrderFee: number | undefined,
-    heavyPackageFee: number | undefined,
-    extraHeavyPackageFee: number | undefined;
-}
+export type ShippingRulesSE = {
+  country: "SE",
+  startingFee: number;
+  shippingAmountThreshold: number;
+  lowOrderFee: number;
+  lightPackage: number;
+  heavyPackageFee: number;
+};
+
+export type ShippingRulesNO = {
+  country: "NO";
+  startingFee: number;
+  shippingAmountThreshold: number;
+  lowOrderFee: number;
+  heavyPackage: number;
+  highOrderFee: number;
+  lightPackage: number;
+  heavyPackageFee: number;
+  extraHeavyPackageFee: number;
+};
+
+export type ShippingRulesUS = {
+  country: "US";
+  startingFee: number;
+};
+
+export type ShippingRulesFI = {
+  country: "FI";
+  startingFee: number;
+};
+
+export type ShippingRules = 
+   |  ShippingRulesNO 
+   |  ShippingRulesSE
+   |  ShippingRulesUS
+   |  ShippingRulesFI

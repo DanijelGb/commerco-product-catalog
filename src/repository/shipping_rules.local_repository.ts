@@ -1,11 +1,16 @@
+import { Country } from "../schemas/country";
 import { ShippingRules } from "../schemas/shipping_rules";
 import { IShippingRulesRepository } from "./shipping_rules.repository";
 
 export class LocalShippingRulesRepository implements IShippingRulesRepository{
 
-    async find(country: string): Promise<ShippingRules | undefined> {
-        return shipping_rules.find(r => r.country === country)
+    async find(country: Country): Promise<ShippingRules> {
+        const rules = shipping_rules.find(r => r.country === country)
+        if (!rules) {
+            throw new Error(`No shipping rules for ${country}`);
+        }
 
+        return rules
     }
 
     async findAll(): Promise<ShippingRules[]>{
@@ -13,17 +18,14 @@ export class LocalShippingRulesRepository implements IShippingRulesRepository{
     }
 }
 
-const shipping_rules = [
+const shipping_rules: ShippingRules[] = [
     {
         country: "SE",
         startingFee: 0,
         shippingAmountThreshold: 500,
         lightPackage: 20,
-        heavyPackage: undefined,
         lowOrderFee: 59,
-        highOrderFee: undefined,
         heavyPackageFee: 200,
-        extraHeavyPackageFee: undefined
     },
     {
         country: "NO",
@@ -39,24 +41,10 @@ const shipping_rules = [
     {
         country: "US",
         startingFee: 499,
-        shippingAmountThreshold: undefined,
-        lightPackage: undefined,
-        heavyPackage: undefined,
-        lowOrderFee: undefined,
-        highOrderFee: undefined,
-        heavyPackageFee: undefined,
-        extraHeavyPackageFee: undefined 
     },
     {
         country: "FI",
         startingFee: 199, 
-        shippingAmountThreshold: undefined,
-        lightPackage: undefined,
-        heavyPackage: undefined,
-        lowOrderFee: undefined,
-        highOrderFee: undefined,
-        heavyPackageFee: undefined,
-        extraHeavyPackageFee: undefined 
     }
 ]
 
