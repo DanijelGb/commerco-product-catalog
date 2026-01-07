@@ -1,51 +1,41 @@
+import { IShippingRulesRepository } from "../repository/shipping_rules.repository";
 import { Country } from "../schemas/country";
+import { ShippingRules } from "../schemas/shipping_rules";
 
 export class FeeCalculator{
 
+    constructor(private shippingRepo: IShippingRulesRepository) {}
+
     calculateFee(amount: number, weight: number, country: Country): number{
+        const rulesToken = this.shippingRepo.find(country)
 
         switch (country) {
             case "SE":
-                return this.calculateSE(amount, weight)
+                return this.calculateSE(amount, weight, rulesToken)
             case "NO":
-                return this.calculateNO(amount, weight)
+                return this.calculateNO(amount, weight, rulesToken)
             case "US":
-                return 499;
+                return rulesToken.startingFee!;
             default:
-                return 199;
+                return rulesToken.startingFee!;
         }
     }
 
-    private calculateSE(amount: number, weight: number): number {
-        let fee = 0;
+    private calculateSE(amount: number, weight: number, token: ShippingRules): number {
+        let fee = token.startingFee!;
 
-        const basicPackage = 20;
-        const freeShippingThreshold = 500;
-
-        const lowOrderFee = 59;
-        const heavyPackageFee = 200;
-
-        if(amount <= freeShippingThreshold) {fee += lowOrderFee;}
-        if(weight > basicPackage) {fee += heavyPackageFee;}
+        if(amount <= token.shippingAmountThreshold!) {fee += token.lowOrderFee!;}
+        if(weight > token.lightPackage!) {fee += token.heavyPackageFee!;}
 
         return fee;
     }
 
-    private calculateNO(amount: number, weight: number): number {
-        const reducedShippingThreshold = 1000
-        const lowOrderFee = 149;
-        const highOrderFee = 99;
+    private calculateNO(amount: number, weight: number, token: ShippingRules): number {
 
-        let fee = amount > reducedShippingThreshold ? lowOrderFee : highOrderFee 
+        let fee = amount > token.shippingAmountThreshold! ? token.lowOrderFee! : token.highOrderFee!
 
-        const basicPackage = 30;
-        const heavyPackage = 50
-
-        const extraHeavyPackageFee = 500
-        const heavyPackageFlatFee = 299;
-
-        if (weight > heavyPackage) {fee += extraHeavyPackageFee}
-        else if(weight > basicPackage) {fee = heavyPackageFlatFee} 
+        if (weight > token.heavyPackage!) {fee += token.extraHeavyPackageFee!}
+        else if(weight > token.lightPackage!) {fee = token.heavyPackageFee!} 
 
         return fee;
     }
