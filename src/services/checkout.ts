@@ -14,7 +14,8 @@ export class Checkout{
         const totalPrice = cart.getTotalPrice();
         const country = user.getCountry();
 
-        const fee = this.feeCalculator.calculateFee(totalPrice, totalWeight, country);
+        const fee = await this.feeCalculator.calculateFee(totalPrice, totalWeight, country);
+
         const totalWithFee = totalPrice + fee;
 
         return {

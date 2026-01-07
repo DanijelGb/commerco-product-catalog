@@ -1,7 +1,7 @@
 import { ShippingRules } from "../schemas/shipping_rules";
 
 export interface IShippingRulesRepository{
-    find(country: string): ShippingRules 
+    find(country: string): Promise<ShippingRules | undefined>;
 
-    findAll(): ShippingRules[]
+    findAll(): Promise<ShippingRules[]>
 }

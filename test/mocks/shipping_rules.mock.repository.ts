@@ -1,15 +1,14 @@
-import { ShippingRules } from "../schemas/shipping_rules";
-import { IShippingRulesRepository } from "./shipping_rules.repository";
+import { IShippingRulesRepository } from "../../src/repository/shipping_rules.repository";
+import { ShippingRules } from "../../src/schemas/shipping_rules";
 
-export class LocalShippingRulesRepository implements IShippingRulesRepository{
+export class ShippingRulesMockRepository implements IShippingRulesRepository{
 
-    async find(country: string): Promise<ShippingRules | undefined> {
-        return shipping_rules.find(r => r.country === country)
-
+    async find(country: string): Promise<ShippingRules | undefined>{
+        return shipping_rules.find(r => r.country === country);
     }
 
     async findAll(): Promise<ShippingRules[]>{
-        return shipping_rules;
+        return shipping_rules
     }
 }
 
@@ -59,4 +58,3 @@ const shipping_rules = [
         extraHeavyPackageFee: undefined 
     }
 ]
-
