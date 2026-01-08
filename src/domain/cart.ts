@@ -7,12 +7,10 @@ export type Cart = {
     }
 
 export function createCart(
-  products: Product[],
-  activePromoId: string | undefined,
 ): Cart{
   return {
     id: crypto.randomUUID(),
-    products, 
-    activePromoId
+    products: [], 
+    activePromoId: undefined
   };
 }

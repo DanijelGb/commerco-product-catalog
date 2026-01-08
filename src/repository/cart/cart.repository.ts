@@ -11,5 +11,5 @@ export interface ICartRepository{
 
     getTotalPrice(id: string): Promise<number>
 
-    removeProduct(id: string, productId: string): Promise<void>
+    removeProduct(id: string, productId: number): Promise<void>
 }

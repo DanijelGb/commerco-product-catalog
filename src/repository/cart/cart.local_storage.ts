@@ -19,7 +19,7 @@ export class CartLocalStorage implements ICartRepository{
         return totalPrice;
     }
 
-    async removeProduct(id: string, productId: string){
+    async removeProduct(id: string, productId: number){
         const cart = await this.find(id);
 
         cart.products.filter(p => p.id !== productId)
