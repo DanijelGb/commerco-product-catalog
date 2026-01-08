@@ -1,48 +1,64 @@
 import { Receipt } from "../domain/receipt";
 import { IPromoService } from "../interfaces/ipromo_service";
-import { IUser } from "../interfaces/iuser";
-import { Result } from "../domain/result";
+import { IUserRepository } from "../repository/user/user.repository";
+import { ICartRepository } from "../repository/cart/cart.repository";
 
 export class Checkout{
 
     constructor(
         private promoService: IPromoService, 
+        private userRepo: IUserRepository, 
+        private cartRepo: ICartRepository
     ){}
 
-    async placeOrder(user: IUser): Promise<Result<Receipt>> {
+    async placeOrder(userId: string): Promise<Receipt> {
 
-        const cart = user.getCart()
-        const total = cart.getTotal();
+        const user = await this.userRepo.find(userId);
+        const cart = await this.cartRepo.find(user.cartId)
 
-        if (!user.canAfford(total)) {
-            return { ok: false, error: "Insufficient funds" };
+        let total = await this.cartRepo.getTotalPrice(user.cartId)
+
+        if (user.balance < total) {
+            throw new Error("Insufficient balance")
         }
 
-        user.pay(total);
-
-        const promo = cart.getPromo()
+        const promo = cart.activePromoId;
         if (promo) {
-            user.addPromoCode(promo.code)
+            total = await this.promoService.applyDiscount(promo, total)
+            await this.userRepo.addPromo(promo, userId)
+            await this.deactivatePromo(user.cartId)
         }
+        
+        user.balance -= total;
 
         return {
-            ok: true,
-            value: {
-                total: total,
-                items: cart.getProducts(),
-            }
+            total: total,
+            items: cart.products
         }
     }
 
-    async deactivatePromo(user: IUser){
-        const cart = user.getCart();
-        cart.deactivatePromo();
+    async deactivatePromo(cartId: string){
+        const cart = await this.cartRepo.find(cartId)
+        cart.activePromoId = undefined;
     }
 
-    async applyPromo(user:IUser, code: string) {
-        const validPromo = await this.promoService.fetchAndValidate(user, code);
+    async applyPromo(userId: string, code: string) {
 
-        const cart = user.getCart();
-        cart.activatePromo(validPromo)
+        const promoConsumed = await this.userRepo.findPromo(code, userId);
+        if(promoConsumed) {
+            throw new Error("Promo has already been consumed")
+        }
+
+        try {
+            const promo = await this.promoService.getPromo(code);
+
+            const user = await this.userRepo.find(userId);
+            const cart = await this.cartRepo.find(user.cartId)
+            cart.activePromoId = promo.code;
+
+        } catch (error) {
+            throw new Error("Promo code does not exist")
+        }
+
     }
 }

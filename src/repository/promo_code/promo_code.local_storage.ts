@@ -12,7 +12,13 @@ export class LocalPromoCodeRepository implements IPromoCodeRepository{
     async findAll(): Promise<PromoCode[]> {
         return this.promos;
     }
-    async find(code: string): Promise<PromoCode | undefined> {
-        return this.promos.find(p => p.code === code)
+    async find(code: string): Promise<PromoCode> {
+        const promo = this.promos.find(p => p.code === code)
+
+        if(!promo){
+            throw new Error("Promo code does not exist")
+        }
+
+        return promo
     }
 }
