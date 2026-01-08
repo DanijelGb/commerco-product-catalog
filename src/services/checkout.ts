@@ -18,6 +18,10 @@ export class Checkout{
 
         let total = await this.cartRepo.getTotalPrice(user.cartId)
 
+        if (total === 0){
+            throw new Error("No products in cart")
+        }
+
         if (user.balance < total) {
             throw new Error("Insufficient balance")
         }

@@ -1,71 +1,92 @@
 import { Checkout } from "../../src/services/checkout"
 import { IPromoService } from "../../src/interfaces/ipromo_service";
-import { IUser } from "../../src/interfaces/iuser";
-import { ICart } from "../../src/interfaces/icart";
-import { User } from "../../src/domain/user";
+import { IUserRepository } from "../../src/repository/user/user.repository";
+import { ICartRepository } from "../../src/repository/cart/cart.repository";
 
-function mockUser(): jest.Mocked<IUser> {
+function mockUserRepo(): jest.Mocked<IUserRepository> {
     return {
-        getBalance: jest.fn(),
-        getCart: jest.fn(),
-        canAfford: jest.fn(),
-        pay: jest.fn(),
-        addPromoCode: jest.fn(),
-        promoUsed: jest.fn()
+        addUser: jest.fn(),
+        findAll: jest.fn(),
+        find: jest.fn(),
+        addPromo: jest.fn(),
+        findPromo: jest.fn()
     }
 }
 
-function mockCart(): jest.Mocked<ICart> {
+function mockCartRepo(): jest.Mocked<ICartRepository> {
     return {
-
+        add: jest.fn(),
+        find: jest.fn(),
         addProduct: jest.fn(),
-        getProducts: jest.fn(),
-        getTotal: jest.fn(),
-        deactivatePromo: jest.fn(),
-        activatePromo: jest.fn(),
-        promoDiscount: jest.fn(),
-        getPromo: jest.fn()
+        getTotalPrice: jest.fn(),
+        removeProduct: jest.fn()
     }
 }
 
 function mockPromoService(): jest.Mocked<IPromoService>{
     return {
-        fetchAndValidate: jest.fn()
+        getPromo: jest.fn(),
+        applyDiscount: jest.fn()
     }
 }
 
-describe("", () => {
-    it("Should not return successful result if user does not have enough balance", async () => {
+describe("Checkout service", () => {
+    it("Should throw when user does not have enough balance", async () => {
+        const userRepo = mockUserRepo();
+        const cartRepo = mockCartRepo();
 
-        const cart = mockCart();
-        const user = mockUser();
-        user.getCart.mockReturnValue(cart)
-        user.canAfford.mockReturnValue(false);
+        userRepo.find.mockResolvedValue({ id: "u1", balance: 50, cartId: "c1" } as any);
+        cartRepo.getTotalPrice.mockResolvedValue(100);
+        cartRepo.find.mockResolvedValue({ products: [], activePromoId: undefined } as any);
 
-        const promoService: jest.Mocked<IPromoService> = {
-            fetchAndValidate: jest.fn()
-        };
+        const checkout = new Checkout(mockPromoService(), userRepo, cartRepo);
 
-        const checkout = new Checkout(promoService);
+        await expect(checkout.placeOrder("u1")).rejects.toThrow("Insufficient balance");
+    })
 
-        const successful = await checkout.placeOrder(user);
+    it("should deduct user balance by cart total and return receipt", async () => {
+        const userRepo = mockUserRepo();
+        const cartRepo = mockCartRepo();
 
-        expect(successful).toEqual({ ok: false, error: "Insufficient funds" })
-    }),
-    it("should call pay with cart total", async () => {
+        const user = { id: "u1", balance: 500, cartId: "c1" } as any;
+        const products = [{ id: 1, price: 200 }];
 
-        const cart = mockCart();
-        cart.getTotal.mockReturnValue(200);
+        userRepo.find.mockResolvedValue(user);
+        cartRepo.getTotalPrice.mockResolvedValue(200);
+        cartRepo.find.mockResolvedValue({ products, activePromoId: undefined } as any);
 
-        const user = mockUser();
-        user.getCart.mockReturnValue(cart);
-        user.canAfford.mockReturnValue(true);
+        const checkout = new Checkout(mockPromoService(), userRepo, cartRepo);
 
-        const promoService = mockPromoService();
+        const receipt = await checkout.placeOrder("u1");
 
-        const checkout = new Checkout(promoService);
-        await checkout.placeOrder(user);
+        expect(receipt).toEqual({ total: 200, items: products });
+        expect(user.balance).toBe(300);
+    })
+    it("checks that placeOrder() calls deactivateOrder() when promo applied", async () => {
+        const userRepo = mockUserRepo();
+        const cartRepo = mockCartRepo();
 
-        expect(user.pay).toHaveBeenCalledWith(200);
+        const user = { id: "u1", balance: 500, cartId: "c1" } as any;
+        const products = [{ id: 1, price: 200 }];
+
+        userRepo.find.mockResolvedValue(user);
+
+        cartRepo.getTotalPrice.mockResolvedValue(200);
+        cartRepo.find.mockResolvedValue({ products, activePromoId : "PROMO10"} as any);
+
+        const promoService = mockPromoService()
+
+        const checkout = new Checkout(promoService, userRepo, cartRepo);
+
+        const applyDiscountSpy = jest.spyOn(promoService, "applyDiscount");
+        const addPromoSpy = jest.spyOn(userRepo, "addPromo");
+        const deactivateSpy = jest.spyOn(checkout, "deactivatePromo");
+
+        await checkout.placeOrder("u1");
+
+        expect(applyDiscountSpy).toHaveBeenCalledWith("PROMO10", 200);
+        expect(addPromoSpy).toHaveBeenCalledWith("PROMO10", "u1");
+        expect(deactivateSpy).toHaveBeenCalledWith("c1");
+ 
     })
 })
