@@ -1,0 +1,1 @@
+export type Country = "FI" | "NO" | "US" | "SE"

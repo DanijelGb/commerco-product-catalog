@@ -25,7 +25,6 @@ export function calculateShipping(amount: any, country: any, weight: any) {
         } else {
             fee = 59;
         }
-
         if (weight > 20) {
             fee = fee + 200; // heavy package
         }
